@@ -1,0 +1,1156 @@
+ModManager v2.2c for Battlefield 2, Battlefield 2142, Battlefield Heroes, Battlefield Play 4 Free
+Copyright (c)2013 Multiplay
+Author: Steven 'Killing' Hartland
+Forums: http://forums.multiplay.co.uk/modmanager/
+Download: http://www.fileplay.net/search?q=ModManager
+
+=== What is ModManager===
+ModManager is server framework that enables players, admins and developers
+to get the most out of BattleField servers.
+
+It enables custom admin modules to be easily developed to enhance the
+abilities of the server.
+
+Additional or updated modules are then easily installed and loaded without
+even restarting your server, reducing down time and keeping players happy.
+
+=== Getting ModManager ===
+Download the latest version of ModManager here: http://www.fileplay.net/search?q=ModManager
+
+=== Installing ModManager===
+To install just unzip into your servers directory
+
+=== Running ModManager ===
+Their are two ways you run ModManager depending on which package
+you have.
+
+Package #1 (Quick)
+If you dont have modmanager.py in your bf2/admin directory
+no further action is needed.
+
+Package #2 (Safe)
+If you have a modmanager.py in your bf2/admin directory
+you will need to change your server config to to use it as
+the admin script e.g.
+sv.adminScript "modmanager"
+If you are using the Windows server launcher change
+AdminScript to be "modmanager" ( without the quotes )
+
+=== Installing new modules ===
+This couldnt be simpler just extract the new module so that
+it sits in the "admin/modules" directory, add
+modmanager.loadModule "<new module>"
+To your modmanager.con and away you go.
+
+=== Enhanced Rcon ===
+ModManager includes a much enhanced rcon which can easily be
+extended by addition modules. Due to this flexibility different
+command will be available depending on which modules you have
+loaded. For a full list of available commands you the built in
+help system once you are logged into rcon.
+
+==== Included modules ====
+1) mm_announcer
+Provides "On Join" and Time based messaging
+Note: Messages on join are currently to all due
+host.sgl_sendTextMessage( playerid, channelid, typeid, text, flags )
+being broken for channelid 14 ( Player )
+
+2) mm_autobalance
+A direct conversion of the default Auto Balance script
+with the addition of tuneables to disable balancing of
+squad members, squad leader and the commander
+
+3) mm_bf2cc
+Provides the server side method to support BF2CC see
+http://www.bf2cc.com for more info on this excellent
+Rcon Client.
+
+4) mm_kicker
+Provides, ping ( high and low ), idle and bad word based kick and
+bans.
+
+5) mm_logger
+Provides default file based logging
+
+6) mm_reserver
+Provides slot reservation based on player profileids
+
+7) mm_rcon
+A major update to the standard RCON including context
+sensitive help, a fully extensible framework, enhanced error
+detection as well as a number of other fixes.
+
+8) mm_sample
+A basic sample module
+
+9) mm_tk_punish
+A direct conversion of the default Team Kill script
+
+10) mm_clanmatch *** DEPRICATED ***
+Does nothing, please use mm_autobalance instead
+
+11) mm_banmanager
+Manages bans maintaining the following information:
+* Player Nick
+* Player key
+* Player IP
+* Datetime of ban
+* Ban Period
+* Ban Type
+* Banned By
+This is also multi server compatible so bans will no longer be lost
+if you are running multiple servers from the same directory.
+
+==== Developing modules ====
+Developing modules for ModManager is easy. A good starting point
+is contained in the modules/mm_sample directory. In addition to
+this the core modules that ship with ModManager will help you
+with examples of how almost everything works.
+
+The ModManager API below is the listing of the methods ModManager
+provides to enable you to develop BF2 modules quickly and easily.
+
+Extending rcon in modules is simple the module just needs
+to register its additional command handlers using
+registerRconCmdHandler
+
+==== Notes ====
+* If you register handlers you should do so in the init() method
+and call the converse method in shutdown()
+* Due to the lack of a host.unregisterHandler( method ) modules
+which use host.registerHandler( method ) should include a local
+state variable which masks the call of these methods if the module
+has been shutdown. See mm_announcer for an example of this.
+* If your module registers for updates the update() method should
+be clean an quick as this method will be called VERY often. Failure
+to do so may cause significant performance penalties ( high CPU
+load and lag ).
+* module rcon commands should be added via the sub command interface
+see mm_sample for an example of this
+* You are encouraged to use the helper methods in mm_utils to
+provide a consistent interface to kick and ban. Using these methods
+will ensure your code takes advantage of any enhancements that may
+become available in BF2 for this area in the future
+e.g. Player dialog messages.
+* All modules must provide a class level mm_load method which returns
+the module object.
+* Modules which support reload ( __supports_reload__ = True ) must
+provide an object level shutdown method.
+* It is not guaranteed that shutdown will be called on modules when
+the server exits.
+
+
+==== Debugging ====
+Debugging support in ModManager is enabled using
+ modmanager.debugEnable 1
+ modmanager.debugFile "modmanager_debug.log"
+ modmanager.logLevel 10
+This will create a log file in the servers main directory
+which will capture any error / info that is generate by your
+module.
+
+===== State Vars =====
+ # The previous game state before the current one
+ mm.lastGameStatus
+ 
+ # The current game state
+ mm.currentGameStatus
+ 
+ # True if the current game state is bf2.GameState.Playing false otherwise
+ mm.gamePlaying
+ 
+ # True if the current round has started i.e. state is bf2.GameState.Playing
+ # and there are enough players to begin False otherwise
+ mm.roundStarted
+
+===== Configuration methods =====
+ # Returns the configuration path
+ mm.configPath()
+ 
+ # Return the config filename.
+ mm.configFile()
+ 
+ # Return the modules configuration, adding any missing default values.
+ mm.getModuleConfig( moduleDefaults={} )
+ 
+ # Set the calling modules parameter.
+ mm.setParam( key, value )
+ 
+ # Add a value to the the calling modules parameters.
+ mm.addParam( key, value )
+ 
+ # Remove one of the calling modules parameter values.
+ mm.removeParam( key, idx )
+ 
+ # Return the calling modules parameter.
+ mm.getParam( key )
+ 
+ # Set the rcon modules parameter.
+ mm.setRconParam( key, value )
+ 
+ Return the rcon modules parameter.
+ mm.getRconParam( key )
+ 
+ # Save the running config
+ mm.saveConfig()
+
+===== Logging methods =====
+ # Log the message at the given debug level.
+ mm.debug( level, msg )
+ 
+ # Log the message at the info level.
+ mm.info( msg )
+ 
+ # Log the message at the warn level.
+ mm.warn( msg )
+ 
+ # Log the message at the error level.
+ mm.error( msg, traceback=False )
+ 
+ # Returns a formatted string of the exception.
+ mm.exceptionString( self )
+
+===== Rcon methods =====
+ # Register a new rcon function hander.
+ mm.registerRconCmdHandler( name, details )
+ 
+ # Unregister an existing rcon function handler. 
+ mm.unregisterRconCmdHandler( name )
+ 
+ # Register a new rcon connect hander.
+ mm.registerRconConnectHandler( func )
+ 
+ # Unregister an existing rcon connect handler.
+ mm.unregisterRconConnectHandler( func )
+ 
+ # Register a new rcon disconnect hander. 
+ mm.registerRconDisconnectHandler( func )
+ 
+ # Unregister an existing rcon disconnect handler.
+ mm.unregisterRconDisconnectHandler( func )
+ 
+ # Register a new rcon auth hander.
+ # auth_func should return a number indicating the authentication level
+ # check_func should return True or False indicating if the user is permitted
+ # to use the passed in rcon method
+ mm.registerRconAuthHandler( self, auth_func, check_func )
+ 
+ # Unregister an existing rcon auth handler. 
+ mm.unregisterRconAuthHandler( func )
+ 
+ # Register a new rcon authed hander.
+ mm.registerRconAuthedHandler( func )
+ 
+ # Unregister an existing rcon auth handler. 
+ mm.unregisterRconAuthedHandler( func )
+
+===== Status methods =====
+ # Return how long a round has been running for.
+ # Takes into account start delay and any pauses.
+ mm.roundTime()
+ 
+ # Return how long a round has left to play.
+ # Returns 0 if there is no time limit or the round hasn't started
+ mm.roundTimeLeft()
+
+===== Ban Manager methods =====
+ # Return the ban manager handle
+ mm.banManager()
+
+===== Update methods =====
+ # Requests updates.
+ mm.registerUpdates( requestor )
+ 
+ # Cancel request for updates.
+ mm.unregisterUpdates( requestor )
+
+==== mm_utils methods ====
+ # Return the name of the status
+ status_name( status )
+ 
+ # Return the number or None if invalid.
+ mm_utils.get_int( ctx, string, desc='number' )
+ 
+ # Kick a player with a reason
+ mm_utils.kick_player( player, msg='You are being kicked (Unknown reason)', delay=5, kick_type=KickBanType.rcon )
+ 
+ # Kick a player 
+ mm_utils.kick_player_now( player, kick_type=None )
+ 
+ # Ban a player for a given period with a reason ( ** Depricated use mm.banPlayer(..) )
+ mm_utils.ban_player( player, msg='You are being banned (Unknown reason)', period=None, delay=5, ban_type=KickBanType.rcon )
+ 
+ # Ban a player ( ** Depricated use mm.banPlayerNow(..) )
+ mm_utils.ban_player_now( player, ban_type=None )
+ 
+ # Sends a message to a player on the server
+ # Note: This currently sends to the entire server as the underlying
+ # API is broken in this respect.
+ mm_utils.msg_player( playerid, msg )
+ 
+ # Sends a message to all players on the server
+ mm_utils.msg_server( msg )
+ 
+ # Execute a modules sub command
+ mm_utils.exec_subcmd( mm, subcmds, ctx, cmd )
+ 
+ # Return the name of the calling module
+ mm_utils.caller_module( level=2 )
+ 
+ # Return the name for the given function.
+ mm_utils.method_name( func )
+ 
+ # Split the <str> using <on> returning a list with exactly <want> members.
+ mm_utils.lsplit( str, on, want, default='' )
+ 
+ # Find a player by cdkeyhash.
+ mm_utils.get_player_by_cd_key_hash( cdkeyhash )
+ 
+ # Determine the players CDKey hash.
+ mm_utils.get_cd_key_hash( player )
+
+=== History ===
+=== v2.2b ===
+ modmanager
+ * Added compatibility for long values
+
+ mm_banmanager
+ * Fixed compatibility issue with BFHeores using long not int profileid's
+
+ mm_rcon
+ * Added compatibility for long values
+
+=== v2.2a ===
+ mm_rcon
+ * Added ruin_snow for Heroes
+
+=== v2.2 ===
+ mm_rcon
+ * Added new map for Play4Free
+
+=== v2.1v ===
+ mm_rcon
+ * Added new gametype to Play4Free
+
+=== v2.1u ===
+ mm_rcon
+ * Added dependent_day to Heroes
+
+ mm_banmanager
+ * Added checks and auto upgrades for Heroes which no longer supports Address bans
+
+=== v2.1t ===
+ mm_rcon
+ * Added Ruin Day to Heroes
+
+=== v2.1q ===
+ mm_rcon
+ * Added Lunar Landing to Battlefield Heroes
+
+=== v2.1p ===
+ mm_rcon
+ * Added Mashtuur City to Play 4 Free
+
+=== v2.1o ===
+ mm_rcon
+ * Added royal_rumble_day to Battlefield Heroes
+
+=== v2.1n ===
+ mm_rcon
+ * Added royal_rumble_snow for Battlefield Heroes
+
+=== v2.1m ===
+ mm_rcon
+ * Added dalian_plant for Battlefield Play 4 Free
+
+=== v2.1l ===
+ mm_rcon
+ * Added support for CTF gametype for Battlefield Heroes
+
+==== v2.1k ====
+ mm_rcon
+ * Added royal_rumble for Battlefield Heroes
+
+==== v2.1j ====
+ mm_rcon
+ * Added Dragon Valley for Battlefield Play 4 Free
+
+==== v2.1i ====
+ mm_rcon
+ * Added wicked_wake for Battlefield Hereos
+
+==== v2.1h ====
+ mm_bf2cc
+ * Updated BFP4F Support to add ReservedSlot info
+
+==== v2.1g ====
+ mm_rcon
+ * Added Basra (downtown) for Battlefield Play 4 Free
+
+==== v2.1f ====
+ mm_rcon
+ * Added Sharqi to Battledfield Play4Free
+
+==== v2.1d ====
+ mm_rcon
+ * Readded woodlands to Battlefield Heroes
+ 
+==== v2.1c ====
+ mm_autobalance
+ * Fixed being able to load on Heroes
+
+==== v2.1b ====
+ mm_rcon
+ * Added gulf_of_oman to BFP4F
+
+==== v2.1a ====
+ mm_utils
+ * Fixed get_cd_key_hash for BFHeroes and BFP4F
+
+==== v2.1 ====
+ Added Support for Battlefield Play 4 Free
+
+==== v2.0k ====
+ mm_rcon
+ * Added the new official christmas maps to Battlefield Heroes
+
+==== v2.0j ====
+ mm_rcon
+ * Added the new official map Molokai to Battlefield 2142
+
+==== v2.0i ====
+ mm_rcon
+ * Added the new official map woodlands to Battlefield Heroes
+
+==== v2.0h ====
+ mm_rcon
+ * Added the new official map ruin and new gametype gpm_hoth to Battlefield Heroes
+
+==== v2.0g ====
+ mm_rcon
+ * Added the new official maps smack2_night, seaside_skirmish_night and lake_night to Battlefield Heroes
+ 
+==== v2.0f ====
+ mm_bf2cc
+ * Removed call for host.rcon_invoke( 'sv.numreservedslots' ) from Heroes as thats been removed
+ mm_rcon
+ * Added the new official woodlands to Battlefield Heroes
+
+==== v2.0e ====
+ mm_rcon
+ * Added the new official mayhem to Battlefield Heroes
+
+==== v2.0d ====
+ mm_bf2cc
+ * Prevent teamswitching, fling and killplayer on heroes servers
+
+==== v2.0c ====
+ modmanager
+ * Added support for Windows paths in automatic fallback on BF2 for config location
+
+==== v2.0b ====
+ mm_rcon
+ * Added the new official Battlefield 2142 maps
+
+==== v2.0a ====
+ mm_rcon
+ * Added the new official Battlefield heroes map heat
+
+==== v2.0 ====
+ mm_tk_punish
+ * Updated Aviator test from BF2 1.50 patch
+
+==== v2.0-BETA5 ====
+ mm_autobalance
+ * Disabled this module for Heroes as its never valid due to the fixed player classes
+ 
+ mm_rcon
+ * Made maplist checks case insensitive
+
+==== v2.0-BETA4 ====
+ mm_rcon
+ * Added smack2 map to list of ranked server maps for Heroes
+
+==== v2.0-BETA3 ====
+ mm_bf2cc
+ * Fixed broken player list
+
+==== v2.0-BETA2 ====
+ mm_rcon
+ * Changed maplist.listAvailable to maplist.listAll to match bfheroes release
+
+==== v2.0-BETA1 ====
+ modmanager
+ * Added isBattleFieldHeroes
+ 
+ mm_rcon
+ * Added Heroes support and removed duplicate maps in bf2
+ * Added maplist.listavailable support method for bfhcc
+ * Added listlocked command to support better user interaction in bfhcc
+ 
+ mm_bf2cc
+ * Added Heroes compatibility:-
+   Each player in pl for heroes adds:
+ 	Int32 Is VIP player (0 - no, otherwise yes)
+ 	Int64 Nucleus id
+   si in heroes adds:
+ 	Int32 Rounds per map
+ 	Int32 Round number
+
+ mm_tk_punish
+ * Added road kill tk change from BF2 v1.50 patch
+
+==== v1.9a ====
+ mm_playerconnect
+ * Added Player validation support for BF2 v1.50
+ 
+==== v1.9 ====
+ mm_rcon
+ * Added new v1.50 BF2 maps operation_blue_pearl
+ 
+ mm_tk_punish
+ * Added road kill tk change from BF2 v1.50 patch
+
+==== v1.8d ====
+ mm_announcer
+ * New line '|' splits ignore patterns which are immediately preceded by the pattern: '§\d+'
+ 
+ mm_banmanager
+ * Fixed issues with invalid ascii characters in player names preventing bans and kicks.
+ * The default file format for mm_bans.xml is now UTF8 encoding
+ 
+ mm_utils
+ * Added to_unicode method and removed escaping from xml_escape as all calls now pass in unicode
+ 
+==== v1.8c ====
+ mm_utils
+ * ml_escape now uses encode ignore instead of encode of replace
+ * largs now supports wanted = 0 which returns as many arguments as there are
+ 
+ mm_iga
+ * Added support for replaceable arguments in all commands e.g. tk|tkwarn:iga warn %arg1% 'Dont team kill %arg1% or you will be banned next time!'
+
+==== v1.8b ====
+ mm_utils
+ * Escaped player names in wild card search so that pattern characters in the player name e.g. * dont break the search
+
+==== v1.8a ====
+ mm_iga
+ * Stipped channel prefixes so commands work in all channels
+ * The automatic rcon auth handler now uses a "random" password for auth which is valid for a very limited time frame to prevent direct use of "rcon login"
+ * Fixed missing unregister for rcon cmd handlers
+ * Removed superfluous warning for iga alias on restart
+
+==== v1.8 ====
+ mm_rcon
+ * Added new v1.50 maps wake_island_2142 and operation_shingle
+
+ mm_playerconnect
+ * Added Player validation method from BF2142 1.50
+
+ mm_tk_punish
+ * Added a validation for attacher removal of pending tk's
+
+==== v1.7c ====
+ mm_kicker
+ * Fixed chat checks failing
+
+==== v1.7b ====
+ mm_kicker
+ * Added checks for invalid kick and ban patterns
+
+==== v1.7a ====
+ mm_rcon
+ * Fixed an issue mapValidateSize of coop / none standard gametypes
+ 
+==== v1.7 ====
+ modmanager
+ * Added a method to retrieve the rcon handle
+ * Version bump
+ 
+ mm_bf2cc
+ * Now uses mm_utils.get_cd_key_hash( player ) to obtain cdkeyhash's this avoids an issue in BF2142 at least where some player names break admin.listPlayers
+ * Added a workaround for broken BF2cc version check
+ 
+ mm_rcon
+ * Fixed a bug in map list validation which would prevent invalid maps from being removed
+ * Added Highway Tampa to the ranked map list
+ * Exposed kickPlayer, banPlayer and banPlayerId for use with IGA
+ 
+ mm_utils
+ * find_player now supports wild card matching on player name if requested
+ 
+==== v1.6a ====
+ modmanager
+ * setParam is now prevented from altering mm_rcon.restrictedGametypes and mm_rcon.lockedSettings
+ 
+==== v1.6 ====
+ modmanager
+ * Increased error checking for config parsing
+ * setParam is now prevented from altering restricted parameters
+ 
+ mm_rcon
+ * Added Northern Strike maps
+ 
+ mm_utils
+ *  Reverted to use server message as player message only works for player slot 0
+ 
+==== v1.5-rc6 ====
+ mm_bf2cc
+ * switchplayer and sendplayerchat now support player names as well as playerid's
+ * Added some additional comments
+ * Added missing \n in output
+
+ mm_utils
+ * Added find_player which finds a player given either a player name or playerid
+
+ mm_rcon
+ * Enhanced mapRun to support None gametype / size parameters
+
+ modmanager
+ * Added new rcon methods runRconCommand and getRconContext
+
+==== v1.5-rc5 ====
+ mm_rcon
+ * Enhanced mapRun to deal with mixed up case maps and gametype.
+
+==== v1.5-rc4 ====
+ mm_utils
+ * Fix for largs returing invalid details if the first character was a quote
+ 
+ mm_rcon
+ * map and admin.runLevel commands now return OK to the rcon client
+ * N.B. No error checking is possible as the underlying rcon commands produce no output.
+
+ mm_bf2cc
+ * Fixed onPlayerDeath not dealing with None victim
+ 
+==== v1.5-rc3 ====
+ mm_rcon
+ * Corrected error in maplist.append processing
+
+==== v1.5-rc2 ====
+ mm_rcon
+ * Added basic and advanced map size validation. Advanced via map.desc is disabled by default
+
+ mm_autobalance
+ * Fixed off by one issue on player connect
+ 
+ mm_banmanager
+ * Now uses .search instead of .match on regexps
+ 
+==== v1.5-rc1 ====
+ mm_rcon
+ * Added run map ability which enhances the way bf2142 implements admin.runLevel as well as adding it to BF2
+ * Added rcon command: map <map> <gametype> [<size>]
+ * Added enhanced map management functions which enables maplist.XXXX commands to behave as expected
+ 
+ mm_clanmatch
+ * This module is now deprecated please use mm_autobalance.roundSwitch instead!
+ 
+ mm_autobalance
+ * Merged with ClanMatch and enhanced to have multiple on round change methods
+
+==== v1.5-BETA4 ====
+ mm_logger
+ * Fixed shutdown issue printing to closed file
+ 
+ mm_bf2cc
+ * Added encoding type to prevent warning when loading
+
+ modmanager
+ * Removed invalid supported games output
+ 
+ mm_announcer
+ * Added the ability to put the players name in join messages using the special string: %player%
+ 
+ mm_rcon
+ * Added 2142 maps
+ * Fixed unregister call which now gets called by bf2142
+ 
+ mm_autobalance
+ * Enhancements / fixes merged from BF2142 Closed BETA 2
+ 
+==== v1.5-BETA3 ====
+ mm_announcer
+ * Added supported games
+ 
+ mm_autobalance
+ * Added supported games
+ * Included changes from BF2142 Tuning BETA 2
+ 
+ mm_banmanager
+ * Added supported games
+ 
+ mm_bf2cc
+ * Added supported games
+ 
+ mm_clanmatch
+ * Added supported games
+ 
+ mm_kicker
+ * Added supported games
+ 
+ mm_logger
+ * Added supported games
+ 
+ mm_playerconnect
+ * Added this module based on standard_admin/playerconnect.py
+ 
+ mm_rcon
+ * Added supported games
+ 
+ mm_reserver
+ * Added supported games
+ 
+ mm_sample
+ * Added supported games
+ 
+ mm_tk_punish
+ * Added supported games
+ 
+ modmanager
+ * Added supported games
+ 
+==== v1.5-BETA2 ====
+ mm_reserver
+ * Corrected unescaped literal % in warning for too high reserved slots
+ 
+==== v1.5-BETA1 ====
+ mm_rcon
+ * Added verdun official 2142 map
+ * Added 2142 compatibility
+ 
+ modmanager
+ * Added 2142 compatibility
+ * Version bump
+ 
+==== v1.4 ====
+ mm_utils
+ * Activated single user messaging.
+ 
+==== v1.4-beta2 ====
+ mm_autobalance
+ * Added gpm_coop checks from v1.4 beta 2 patch
+ 
+==== v1.4-beta1 ====
+ modmanager
+ * Version bump
+ 
+ mm_rcon
+ * Added road_to_jalalabad official map
+ 
+==== v1.3a ====
+ modmanager
+ * Version bump
+ 
+ mm_bf2cc
+ * Fixed player details for bots
+ 
+==== v1.3 ====
+ mm_rcon
+ * Added Armored Fury maps to the official map list
+ * Added lockedSettings config option which allows admins to lock settings from being changed
+ * Added allowedGametypes config option which allows admins to restrict the gametypes that can be played
+ * Added modDir helper method
+ 
+ mm_autobalance
+ * Added gpm_coop check from v1.3 patch
+ 
+==== v1.2 ====
+ mm_banmanager
+ * Added dateTime and skipSave params to banPlayerKey and banPlayerAddress methods
+ 
+ mm_bf2cc
+ * Version increment
+ 
+==== v1.2-rc10 ====
+ mm_banmanager
+ * Added local addBan method
+ * Corrected cmdAddBan now correctly adds server side ban
+ * Corrected cmdUpdateBan now correctly removes any old ban and adds the new one
+ * API cleanup implementing internal __addBan __removeBan methods which are now exclusively used for manipulating the internal ban list
+ * Added local rcon method listBans
+ 
+==== v1.2-rc9 ====
+ mm_utils
+ * Added get_player_details which returns a list of players with mmDetails set. This contains cdkeyhash and port as fields.
+ 
+ mm_tk_punish
+ * Now resets player tkData before each round
+ 
+ mm_banmanager
+ * Added datetime param to updateBan and addBan rcon commands
+ 
+==== v1.2-rc8 ====
+ mm_rcon
+ * Enhanced error catching
+ 
+ mm_banmanager
+ * Added local ban manipulation rcon commands
+ 
+==== v1.2-rc7 ====
+ modmanager
+ * Swapped rcon and banManager initialisation order so that banManager can register rcon commands
+ 
+ mm_banmanager
+ * Corrected shutdown of onGameStatusChanged
+ * Corrected usage of ban['datetime'] and time.now() in periodic ban reads
+ 
+ mm_bf2cc
+ * Extra validation done in cmdGetPlayerHash
+ 
+==== v1.2-rc6 ====
+ mm_banmanager
+ * Added dateTimeFormat and oldDateTimeFormat parameter to allow for custom formats. Note all dates are stored and output in GMT.
+ 
+==== v1.2-rc5 ====
+ mm_banmanager
+ * A banDelay of 0 passed to banPlayer now prevents any ban message being displayed.
+ 
+ mm_bf2cc
+ * Added punished info to the player info
+ 
+==== v1.2-rc4 ====
+ mm_banmanager
+ * Optimised logic ( common case first ).
+ * Corrected typo in clearBans for time based bans.
+ * Now clears all legacy bans on load if a Banmanager banfile is detected and on map change. This prevents old bans creeping in unnoticed.
+ * Corrected availability of now variable for timed bans
+ 
+==== v1.2-rc3 ====
+ mm_banmanager
+ * Now only reads in server based "legacy" bans if configured banFilename doesnt exist. This prevents problems on multi server installs.
+ 
+ mm_bf2cc
+ * Now requires mm_tk_punish for so we can display punish information
+ * Added team kill forgive / punish information to cmdGetPlayerList
+ 
+==== v1.2-rc2 ====
+ mm_banmanager
+ * clearBanList now correctly clears __roundBans and __unbanTimers preventing incorrect warnings when the cleared bans expire.
+ 
+==== v1.2-rc1 ====
+ modmanager
+ * Bumped version number for ban manager release
+ * Now also searches admin/ + moduleBase + /libs for python modules
+ 
+ mm_reserver
+ * Replaced kickMessage with kickReason
+ * Now uses banmanager.kickPlayer hence requires MM v1.2
+ 
+ mm_kicker
+ * Removed kickMessage as its now handled via mm_banmanager
+ * Now uses banmanager.kickPlayer hence requires MM v1.2
+ * Replaced kickWordMessage with kickWordReason
+ 
+ mm_banmanager
+ * Added defaultBanCdKeyHash and defaultBanAddress config options
+ * Now checks to ensure that banMethod is valid and will attempt to correct based on the ban info available
+ * Now deals with duplicate bans within the ban message notification period
+ * Added kickPlayer and kickPlayerNow methods which replace those from mm_utils
+ * Now checks to ensure Round bans arent read back in from disk on initialisation
+ 
+ mm_rcon
+ * Now uses banmanager.kickPlayer hence requires MM v1.2
+ * Changed authed message format to be more prominent
+ * Kick and Ban methods now use advanced argument parsing which supports quoted and arguments
+ 
+ mm_utils
+ * kick_player and kick_player_now are now depricated see mm_banmanager kickPlayer and kickPlayerNow for replacements
+ * Added largs method for parsing arguments from a string
+ 
+==== v1.1j ====
+ mm_banmanager
+ * Corrected documented defaults for defaultBanPeriod => "Perm" and defaultBanMethod => "Key"
+ 
+ mm_tk_punisher
+ * Additional error checking for punish announcements + logging of punishes
+ * Fixed TK announcements use of invalid victim object
+ 
+==== v1.1i ====
+ mm_banmanager
+ * Added getBanList method which returns a copy of the servers current banlist hash
+ * Corrected banlist read in for player nick
+ * Renamed validateBanKey to validateBanAddressOrKey ( more appropriate name )
+ * Now calls validatePlayerName to determine the Player Nick in legacy methods
+ * Removed spurious ',' which broke banPlayerNow
+ 
+ mm_bf2cc
+ * Added serverChatFormat config option which now doesn't use large fonts by default. Prefix with ' §3 ' for large messages.
+ 
+==== v1.1h ====
+ mm_banmanager
+ * Now escapes XML entities
+ * Added defaultBanNick
+ * Now validates banfile on read in fixing data if possible
+ 
+ mm_utils
+ * Added xml.sax.saxutils replacement methods xml_escape and xml_unescape
+ 
+==== v1.1g ====
+ mm_tk_punisher
+ * Announcements are now logged
+ * Announcement errors are now dealt with
+ 
+==== v1.1f ====
+ mm_banmanager
+ * Enhanced input validation to unban method
+ 
+==== v1.1e ====
+ mm_banmanager
+ * Added check for invalid unban ( empty ban key / address )
+ * Added early determination of player: name, profileid, address and cdkey
+ * Enhanced error detection and recovery for delayed bans
+ * Added unBanReason validation
+ * Both admin.removeAddressFromBanList and admin.removeKeyFromBanList now return an error string if the remove failed
+ 
+ mm_rcon
+ * Updated parameter list for admin.removeAddressFromBanList and admin.removeKeyFromBanList
+ * Added number argument validation checks to exec overridden methods
+ * Both admin.removeAddressFromBanList and admin.removeKeyFromBanList now return an error string if the remove failed
+ 
+==== v1.1d ====
+ mm_tk_punish
+ * Added missing configuration defaults
+ 
+==== v1.1c ====
+ mm_banmanager
+ * Fixed cut and paste error in validateBanKey
+ 
+==== v1.1b ====
+ mm_banmanager
+ * Added validation for ban cdkey hashes and addresses
+ * Fixed log entry for banPlayerAddress and banPlayerKey
+ 
+ mm_utils
+ * Made get_int more resilient to bad input ( strips quotes and spaces )
+ 
+==== v1.1a ====
+ modmanager
+ * Removed proxy methods for ban manager methods to reduce the coupling of mm and banmanager
+ * All Ban Manager methods should now be accessed via mm.banManager().<method>
+ 
+ mm_banmanager
+ * Now uses admin.addAddressToBanList and admin.addKeyToBanList as a backup to admin.banPlayer and admin.banPlayerKey
+ * Corrected inverted use of admin.banPlayer and admin.banPlayerKey
+ * Added banPlayerAddress and banPlayerKey methods for adding manual bans
+ * Ban file is now valid XML i.e. contains a header and a root <banlist> node
+ * unbanPlayer now logs at level info
+ * clearBanList now logs at level info
+ * Added banMessage, defaultBanReason, defaultBanDelay and defaultBanPeriod config parameters
+ * Added validation of banPeriod, banReason, banDelay, banType and bannedBy
+ * Now also issues a kick to a player when they are banned to workaround bans issued in the early stages of a player connecting failing to activate
+ * Now deals with from now and epoc bans
+ * Added expireBan
+ * unbanPlayer now takes an optional reason
+ 
+ mm_rcon
+ * Now correctly deals with admin.addAddressToBanList and admin.addKeyToBanList including an extended 3rd argument "reason"
+ * Fixed admin.banplayer ban type
+ * exec admin.banPlayer and exec admin.banPlayerKey now support an extended 3rd argument "reason"
+ * Added banby rcon command which takes a parameter denoting who did the ban
+ * Unban now takes an optional reason
+ 
+ mm_utils
+ * Now uses self.mm.banManager().<method>
+ * banReason's now default to None see: mm_banmanager.defaultBanReason
+ * banPeriod's now default to None see: mm_banmanager.defaultBanPeriod
+ * get_cd_key_hash now caches the players cdkey for faster access
+ 
+ mm_tk_punish
+ * Now uses self.mm.banManager().<method>
+ * Config option banMessage replaced by banReason for ban manager compatibility
+ 
+ mm_kicker
+ * Now uses self.mm.banManager().<method>
+ * Now requires ModManager version 1.1
+ * Config option banWordMessage removed and replaced with banWordReason for ban manager compatibility
+ 
+==== v1.1 ====
+ modmanager
+ * Added Ban Manager proxy methods
+ 
+ mm_rcon
+ * Error case trap for connection reset added
+ * Added banlist rcon method
+ * Added clearbans rcon method
+ * Added unban rcon method
+ * Updated ranked restricted maps for BF2 v1.2 patch
+ 
+ mm_banmanager
+ * Error case trap for player.getName() failing added
+ * Added banlist method
+ 
+==== v1.1-beta2 ====
+ mm_rcon
+ * Added maplist rcon command which has a low auth level for use with bf
+ 
+==== v1.1-beta1 ====
+ modmanager
+ * Fixed random module dependency load problem
+ 
+ mm_utils
+ * Added a default for mmKickReason to kick_player_now
+ * Added a default for mmBanReason to ban_player_now
+ * Now delegates bans to the Ban Manager
+ * Added get_player_by_cd_key_hash method
+ * Added get_cd_key_hash method
+ 
+ mm_tk_punisher
+ * Added Punish / Forgive announcements ( original idea from Battlefield.no )
+ * Now uses the ban manager to execute bans
+ * Now requires ModManager version 1.1
+ 
+ mm_banmanager
+ * Initial version
+ 
+ mm_rcon
+ * Now uses the Ban Manager for baning players
+ * Now requires ModManager version 1.1
+ 
+==== v1.0j ====
+ mm_bf2cc
+ * Fixed formatting issues
+ * Now only compatible with 4.6 or later only client
+ 
+ mm_clanmatch
+ * Enabled roundSwitch config option
+ 
+ mm_rcon
+ * Fix for errors on accept causing rcon to stop functioning
+ 
+==== v1.0i ====
+ mm_bf2cc
+ * Fix for maplist causing the server to crash
+ * Fix for player hash pattern match and LAN servers
+ 
+==== v1.0h ====
+ Private release
+ 
+==== v1.0g ====
+ Private release
+ 
+==== v1.0f ====
+ Private release
+ 
+==== v1.0e ====
+ mm_bf2cc
+ * Added methods to report player hashes
+ * Removed reporting of ticketChangePerSecond to prevent overflow errors
+ 
+==== v1.0d ====
+ mm_rcon
+ * Added Special Forces official Maps
+ 
+ mm_clanmatch
+ * Initial Version
+ 
+==== v1.0c ====
+ mm_rcon
+ * Fixed logCommands option
+ 
+ mm_clanmatch
+ * New module which enables teams to be automatically switched at the end of round.
+ 
+==== v1.0b ==== 
+ mm_bf2cc
+ * Fix for getRootParent being removed from constants.py in BF2 1.03, this fixes vehicle reporting
+ * Added a compatibility version which will enable older BF2CC clients and daemons to connect if no protocol changes have occurred
+ 
+==== v1.0 ====
+ modmanager
+ * Corrected autoSave ( still unreliable as the servers doesnt call shutdown most the time )
+ 
+ mm_rcon
+ * Added new offcial map
+ * Added rcon methods profileid and profileids. N.B. profileid is an unauthed method
+ 
+ mm_tk_punish
+ * Incorporated BF2 1.03 patch changes ( ban now uses key and artillery kills are no longer counted )
+ 
+==== v1.0-final-b1 ====
+ mm_rcon
+ * Fix for BF2CC maplist management ( strips quotes from map names )
+ 
+==== v1.0-rc5 ====
+ modmanager
+ * Added configPath() method
+ * Updated time logic to take into account none started matches and correct roundTimeLeft()
+ 
+ mm_rcon
+ * Added log option for all commands used
+ * Added checks for official maps on ranked servers
+ * Added flush on DOS disconnects
+ 
+ mm_kicker
+ * Corrected round check
+ * Changed default negative kick to -15
+ * Updated ban checks to corrected variable name
+ * Now only switches dead players if the game is in progress.
+ 
+ mm_bf2cc
+ * Now requires version 1.9 of the mm_kicker
+ 
+==== v1.0-rc4 ====
+ modmanager
+ * shutdown() and init() are now manditory methods for modules
+ * Added startTimeWall and startTimeUTC properties which identifies then the round
+ started excluding start delay
+ * Added roundTime() and roundTimeLeft() methods which return the number of seconds
+ the round has been playing for and has left respectively. Pauses and start delay
+ are taken into account
+ 
+ mm_bf2cc
+ * Removed \n from server name in si response
+ * Updated to use mm methods for round times 
+ 
+ mm_rcon
+ * Corrected unauthorised message print
+ * Extra security checks now prevent the use of blank passwords
+ * Fixed users command
+ * Added extra exception check
+ 
+ mm_announcer
+ * Corrected Rcon commands docs
+ * Updated line split '|' to work consistently across join and timed messages
+ 
+ mm_kicker
+ * Added idleIgnoreNotStarted defaults to 1 which means idle kicks are disabled
+   while the round has not started ( below min players to start )
+ * Disabled enhanced debug in main kick routine
+ * Now detects bad language in the first word of dead messages
+ * Added negative score kick
+  
+ mm_utils
+ * Removed prefix param from MsgChannel constuctor.
+ * MsgChannel.stripPrefix now removes all known prefixes for all channels
+ * Added status_name which will return a string of the passed in GameState
+ 
+==== v1.0-rc3 ====
+ mm_kicker:
+ * Fixed typo's in "message" variables ensure your modmanager.con is correct
+ 
+ mm_announcer:
+ * Fixed module shutdown error
+ 
+ mm_sample:
+ * Added missing mm.unregisterRconCmdHandler to shutdown
+ 
+ mm_bf2cc:
+ * Now requires mm_kicker v1.7
+ 
+==== v1.0-rc2 ====
+ Fixes for mm_kicker not loading on ranked servers when configured
+ for high ping kick lower than 160.
+ 
+==== v1.0-rc1 ====
+ Initial public release
+
+
+=== Licence ===
+This software is free to use in any situation given.
+Any bugs found must be reported to the author.
+This software is released under "The Artistic License"
+see mm_licence.txt for more details
